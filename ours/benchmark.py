@@ -178,21 +178,23 @@ def main():
         w = csv.writer(f)
         if new:
             w.writerow(["time", "mode", "tag", "device", "half", "ranks", "batch", "latency_ms_median",
-                        "latency_ms_p95", "ms_per_image", "param_MB_in_memory", "peak_mem_MB"])
+                        "latency_ms_p95", "ms_per_image", "param_MB_in_memory", "peak_mem_MB", "extra_mem_during_inference_MB"])
         print(f"mode={a.mode} device={a.device} params in memory={param_mb:.1f} MB")
         for bs in [int(s) for s in a.batch_sizes.split(",")]:
             if a.device.startswith("cuda"):
                 med, p95 = time_model(model, bs, a.device, a.warmup, a.iters, a.half)
                 peak = torch.cuda.max_memory_allocated() / 2**20
+                extra = peak - param_mb  # activations/workspace on top of the weights
             else:
                 with RssSampler() as smp:
                     smp.peak = base_after_model
                     med, p95 = time_model(model, bs, a.device, a.warmup, a.iters, a.half)
                 peak = smp.peak - base_rss
+                extra = smp.peak - base_after_model  # memory added by running inference (excludes weights and loading leftovers)
             ranks = "-" if a.mode == "dense" else str(parse_ranks(a.ranks, a.rank))
-            print(f"  batch {bs:>3}: median {med:8.2f} ms  p95 {p95:8.2f} ms  ({med / bs:6.2f} ms/img)  peak {peak:8.1f} MB")
+            print(f"  batch {bs:>3}: median {med:8.2f} ms  p95 {p95:8.2f} ms  ({med / bs:6.2f} ms/img)  peak {peak:8.1f} MB  extra-during-inference {extra:7.1f} MB")
             w.writerow([time.strftime("%Y-%m-%d %H:%M:%S"), a.mode, a.tag, a.device, a.half, ranks, bs,
-                        f"{med:.3f}", f"{p95:.3f}", f"{med / bs:.3f}", f"{param_mb:.2f}", f"{peak:.1f}"])
+                        f"{med:.3f}", f"{p95:.3f}", f"{med / bs:.3f}", f"{param_mb:.2f}", f"{peak:.1f}", f"{extra:.1f}"])
 
 
 if __name__ == "__main__":

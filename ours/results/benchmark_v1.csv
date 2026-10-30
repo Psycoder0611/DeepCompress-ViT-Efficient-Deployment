@@ -1,0 +1,13 @@
+time,mode,tag,device,half,ranks,batch,latency_ms_median,latency_ms_p95,ms_per_image,param_MB_in_memory,peak_mem_MB
+2026-10-29 20:41:49,dense,mac-dense,cpu,False,-,1,17.541,17.722,17.541,82.66,87.8
+2026-10-29 20:41:55,dense,mac-dense,cpu,False,-,4,50.786,55.889,12.696,82.66,108.9
+2026-10-29 20:42:43,dense,mac-dense,cpu,False,-,32,395.051,425.433,12.345,82.66,285.5
+2026-10-29 20:42:47,factorized-random,mac-r277,cpu,False,"{'qkv': 277, 'proj': 277, 'fc1': 277, 'fc2': 277}",1,17.083,17.516,17.083,79.57,146.2
+2026-10-29 20:42:53,factorized-random,mac-r277,cpu,False,"{'qkv': 277, 'proj': 277, 'fc1': 277, 'fc2': 277}",4,49.457,50.672,12.364,79.57,165.1
+2026-10-29 20:43:40,factorized-random,mac-r277,cpu,False,"{'qkv': 277, 'proj': 277, 'fc1': 277, 'fc2': 277}",32,381.043,397.286,11.908,79.57,341.7
+2026-10-29 21:51:14,dense,mac-dense,cpu,False,-,1,17.518,19.291,17.518,82.66,88.0
+2026-10-29 21:51:21,dense,mac-dense,cpu,False,-,4,50.734,56.598,12.683,82.66,108.7
+2026-10-29 21:52:08,dense,mac-dense,cpu,False,-,32,390.621,398.566,12.207,82.66,285.1
+2026-10-29 21:52:13,factorized-ckpt,mac-ckpt277,cpu,False,"{'qkv': 277, 'proj': 277, 'fc1': 277, 'fc2': 277}",1,17.588,18.282,17.588,79.57,1051.8
+2026-10-29 21:52:19,factorized-ckpt,mac-ckpt277,cpu,False,"{'qkv': 277, 'proj': 277, 'fc1': 277, 'fc2': 277}",4,49.770,51.446,12.443,79.57,1052.4
+2026-10-29 21:53:05,factorized-ckpt,mac-ckpt277,cpu,False,"{'qkv': 277, 'proj': 277, 'fc1': 277, 'fc2': 277}",32,385.664,392.408,12.052,79.57,1163.7

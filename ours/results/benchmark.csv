@@ -1,7 +1,13 @@
-time,mode,tag,device,half,ranks,batch,latency_ms_median,latency_ms_p95,ms_per_image,param_MB_in_memory,peak_mem_MB
-2026-10-29 20:41:49,dense,mac-dense,cpu,False,-,1,17.541,17.722,17.541,82.66,87.8
-2026-10-29 20:41:55,dense,mac-dense,cpu,False,-,4,50.786,55.889,12.696,82.66,108.9
-2026-10-29 20:42:43,dense,mac-dense,cpu,False,-,32,395.051,425.433,12.345,82.66,285.5
-2026-10-29 20:42:47,factorized-random,mac-r277,cpu,False,"{'qkv': 277, 'proj': 277, 'fc1': 277, 'fc2': 277}",1,17.083,17.516,17.083,79.57,146.2
-2026-10-29 20:42:53,factorized-random,mac-r277,cpu,False,"{'qkv': 277, 'proj': 277, 'fc1': 277, 'fc2': 277}",4,49.457,50.672,12.364,79.57,165.1
-2026-10-29 20:43:40,factorized-random,mac-r277,cpu,False,"{'qkv': 277, 'proj': 277, 'fc1': 277, 'fc2': 277}",32,381.043,397.286,11.908,79.57,341.7
+time,mode,tag,device,half,ranks,batch,latency_ms_median,latency_ms_p95,ms_per_image,param_MB_in_memory,peak_mem_MB,extra_mem_during_inference_MB
+2026-10-29 21:56:31,factorized-random,r277_all,cpu,False,"{'qkv': 277, 'proj': 277, 'fc1': 277, 'fc2': 277}",1,17.151,17.291,17.151,79.57,141.1,5.0
+2026-10-29 21:57:17,factorized-random,r277_all,cpu,False,"{'qkv': 277, 'proj': 277, 'fc1': 277, 'fc2': 277}",32,379.685,394.950,11.865,79.57,318.0,182.0
+2026-10-29 21:57:21,factorized-random,r277_proj192,cpu,False,"{'qkv': 277, 'proj': 192, 'fc1': 277, 'fc2': 277}",1,16.592,16.803,16.592,76.58,136.0,5.3
+2026-10-29 21:58:05,factorized-random,r277_proj192,cpu,False,"{'qkv': 277, 'proj': 192, 'fc1': 277, 'fc2': 277}",32,369.845,374.701,11.558,76.58,313.5,182.8
+2026-10-29 21:58:09,factorized-random,r256_proj160,cpu,False,"{'qkv': 256, 'proj': 160, 'fc1': 256, 'fc2': 256}",1,15.747,16.035,15.747,70.29,130.0,4.2
+2026-10-29 21:58:52,factorized-random,r256_proj160,cpu,False,"{'qkv': 256, 'proj': 160, 'fc1': 256, 'fc2': 256}",32,356.428,363.652,11.138,70.29,311.2,185.5
+2026-10-29 21:58:55,factorized-random,r192_all,cpu,False,"{'qkv': 192, 'proj': 192, 'fc1': 192, 'fc2': 192}",1,14.105,15.892,14.105,55.66,114.3,5.2
+2026-10-29 21:59:33,factorized-random,r192_all,cpu,False,"{'qkv': 192, 'proj': 192, 'fc1': 192, 'fc2': 192}",32,316.524,320.502,9.891,55.66,291.2,182.1
+2026-10-29 21:59:37,factorized-random,r128_all,cpu,False,"{'qkv': 128, 'proj': 128, 'fc1': 128, 'fc2': 128}",1,12.429,12.543,12.429,37.66,95.6,5.6
+2026-10-29 22:00:09,factorized-random,r128_all,cpu,False,"{'qkv': 128, 'proj': 128, 'fc1': 128, 'fc2': 128}",32,261.659,278.361,8.177,37.66,275.8,185.8
+2026-10-29 22:00:12,factorized-random,r96_all,cpu,False,"{'qkv': 96, 'proj': 96, 'fc1': 96, 'fc2': 96}",1,11.469,11.584,11.469,28.66,91.4,8.3
+2026-10-29 22:00:40,factorized-random,r96_all,cpu,False,"{'qkv': 96, 'proj': 96, 'fc1': 96, 'fc2': 96}",32,232.760,251.532,7.274,28.66,267.9,184.9
