@@ -50,10 +50,11 @@ def get_models(args):
     if args.dataset not in ['imagenet', 'cifar10']:
         raise ValueError("Unsupported dataset. Choose 'imagenet' or 'cifar10'.")
     num_classes = 1000 if args.dataset == 'imagenet' else 10
-    model = timm.create_model(args.model_name, pretrained=True, num_classes=num_classes)
+    use_pretrained = args.dataset == 'imagenet'  # CIFAR-10: weights come from deit_small_cifar10_best.pth, no download needed
+    model = timm.create_model(args.model_name, pretrained=use_pretrained, num_classes=num_classes)
     model.cuda()
 
-    compressed_model = timm.create_model(args.model_name, pretrained=True, num_classes=num_classes)
+    compressed_model = timm.create_model(args.model_name, pretrained=use_pretrained, num_classes=num_classes)
     compressed_model.cuda()
     
     if args.dataset == 'cifar10':

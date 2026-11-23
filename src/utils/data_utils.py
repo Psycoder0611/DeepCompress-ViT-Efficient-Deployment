@@ -62,7 +62,7 @@ def get_dataloaders_imagenet(BATCH_SIZE = 128):
     return train_loader, test_loader
 
 
-def get_dataloaders_cifar10(BATCH_SIZE = 128):
+def get_dataloaders_cifar10(BATCH_SIZE = 128, root='./data/cifar10', num_workers=4):
     mean = [0.485, 0.456, 0.406]
     std = [0.229, 0.224, 0.225]
 
@@ -83,20 +83,20 @@ def get_dataloaders_cifar10(BATCH_SIZE = 128):
     ])  # here is actually the validation dataset
 
     st = time.time()
-    train_data = datasets.CIFAR10(root='/data/cifar10_data', train=True, transform=train_transform, download=True)
+    train_data = datasets.CIFAR10(root=root, train=True, transform=train_transform, download=True)
     print('time:', time.time()-st)
-    test_data = datasets.CIFAR10(root='/data/cifar10_data', train=False, transform=test_transform)
+    test_data = datasets.CIFAR10(root=root, train=False, transform=test_transform)
         
     train_loader = torch.utils.data.DataLoader(
                     train_data,
                     batch_size=BATCH_SIZE,
                     shuffle=True,
-                    num_workers=4,
+                    num_workers=num_workers,
                     pin_memory=True)
     
     test_loader = torch.utils.data.DataLoader(test_data,
                                               batch_size=BATCH_SIZE,
                                               shuffle=False,
-                                              num_workers=4,
+                                              num_workers=num_workers,
                                               pin_memory=True)
     return train_loader, test_loader

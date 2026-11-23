@@ -5,6 +5,8 @@ from argparse import Namespace
 from torch.nn import functional as F
 from torch.cuda.amp import autocast, GradScaler
 from src.utils import update_model_weights
+from src.models import get_ranks
+import time
 from src.utils import AverageMeter, evaluate_new_mixed  
 from timm.loss import SoftTargetCrossEntropy
 from timm.data import Mixup
@@ -127,6 +129,7 @@ def train_one_epoch(epoch, encoders, decoders, original_model, model_copy, origi
         decoders[key].train()
 
 
+    t_start = time.time()
     for b_idx, (input_images, target_labels) in enumerate(pbar):
         with autocast(enabled=args.mixed_precision):
             
@@ -188,6 +191,15 @@ def train_one_epoch(epoch, encoders, decoders, original_model, model_copy, origi
 
         pbar.set_postfix(loss_current=loss.item(), loss_ravg=loss_meter.avg, accuracy=acc_meter.avg)
 
+        # --time_iters N: time N iterations, print the estimated epoch time, then stop (no evaluation, no checkpoint)
+        if getattr(args, 'time_iters', 0) and (b_idx + 1) == args.time_iters:
+            if torch.cuda.is_available():
+                torch.cuda.synchronize()
+            per_iter = (time.time() - t_start) / args.time_iters
+            print(f'TIMING: {per_iter:.3f} s/iter, {len(train_loader)} iters/epoch -> about {per_iter * len(train_loader) / 60:.1f} min/epoch '
+                  f'(includes data-loader warm-up; run a few more iters for a steadier number)')
+            raise SystemExit(0)
+
         if ((b_idx + 1) % args.eval_interval == 0) or (b_idx + 1 == len(train_loader)):
             model_copy.eval()
                 
@@ -208,6 +220,7 @@ def train_one_epoch(epoch, encoders, decoders, original_model, model_copy, origi
                     'scaler_state': scaler.state_dict(),
                     'epoch': epoch + 1,
                     'rank': args.rank,
+                    'ranks': get_ranks(args),
                 }
 
                 if scheduler is not None:

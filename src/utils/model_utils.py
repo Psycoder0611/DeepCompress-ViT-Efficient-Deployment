@@ -180,6 +180,8 @@ class CustomFcFlops(nn.Module):
 
 
 def create_model_for_flops(model, args, selected_layers=None):
+    from src.models.autoencoder import get_ranks
+    ranks = get_ranks(args)
     model_copy = copy.deepcopy(model)
 
     
@@ -190,28 +192,28 @@ def create_model_for_flops(model, args, selected_layers=None):
     
         if f'block_{i}_attn_qkv' in selected_layers:
             _, bias_qkv = clone_weights(attn_layer.qkv)
-            custom_qkv = CustomFcFlops(hidden_dim=args.hidden_dim, rank=args.rank, 
+            custom_qkv = CustomFcFlops(hidden_dim=args.hidden_dim, rank=ranks['qkv'], 
                                        out_dim=args.hidden_dim*3, bias=bias_qkv)
             model_copy.blocks[i].attn.qkv = custom_qkv
             
             
         if f'block_{i}_attn_proj' in selected_layers:
             _, bias_proj = clone_weights(attn_layer.proj)
-            custom_proj = CustomFcFlops(hidden_dim=args.hidden_dim, rank=args.rank, 
+            custom_proj = CustomFcFlops(hidden_dim=args.hidden_dim, rank=ranks['proj'], 
                                         out_dim=args.hidden_dim, bias=bias_proj)
             model_copy.blocks[i].attn.proj = custom_proj
 
            
         if f'block_{i}_mlp_fc1' in selected_layers:
             _, bias_fc1 = clone_weights(mlp_layer.fc1)
-            custom_fc1 = CustomFcFlops(hidden_dim=args.hidden_dim, rank=args.rank, 
+            custom_fc1 = CustomFcFlops(hidden_dim=args.hidden_dim, rank=ranks['fc1'], 
                                        out_dim=args.hidden_dim*4, bias=bias_fc1)
             model_copy.blocks[i].mlp.fc1 = custom_fc1
 
 
         if f'block_{i}_mlp_fc2' in selected_layers:
             _, bias_fc2 = clone_weights(mlp_layer.fc2)
-            custom_fc2 = CustomFcFlops(hidden_dim=args.hidden_dim*4, rank=args.rank, 
+            custom_fc2 = CustomFcFlops(hidden_dim=args.hidden_dim*4, rank=ranks['fc2'], 
                                        out_dim=args.hidden_dim, bias=bias_fc2)
             model_copy.blocks[i].mlp.fc2 = custom_fc2
 

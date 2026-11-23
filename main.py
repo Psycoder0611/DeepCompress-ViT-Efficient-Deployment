@@ -3,8 +3,8 @@ import timm
 import torch
 import argparse
 from tqdm import tqdm
-from src.models import get_models, get_encoder_decoders
-from src.utils import (seed_everything, get_dataloaders_imagenet, get_layer_names, create_optimizer_scheduler, 
+from src.models import get_models, get_encoder_decoders, get_ranks
+from src.utils import (seed_everything, get_dataloaders_imagenet, get_dataloaders_cifar10, get_layer_names, create_optimizer_scheduler, 
                        process_model_blocks, analyze_parameter_storage)
 from src.training import initial_fit, train
 
@@ -16,6 +16,7 @@ def main(args):
 
     args.hidden_dim = 768 if 'base' in args.model_name else 384
     print('hidden_dim:', args.hidden_dim)
+    print('ranks per layer type:', get_ranks(args))
 
     # Load and prepare the model
     model, compressed_model = get_models(args)
@@ -27,7 +28,10 @@ def main(args):
                                                             skip_qkv=args.skip_qkv)
 
     # Get data loaders
-    train_loader, val_loader = get_dataloaders_imagenet(args.batch_size)
+    if args.dataset == 'cifar10':
+        train_loader, val_loader = get_dataloaders_cifar10(args.batch_size, root=args.data_root, num_workers=args.num_workers)
+    else:
+        train_loader, val_loader = get_dataloaders_imagenet(args.batch_size)
 
     encoders, decoders = get_encoder_decoders(selected_layers, input_seq_lens, args)
     print('original_weights:', original_weights.keys())
@@ -43,12 +47,17 @@ def main(args):
     optimizer, scheduler, optimizer_ft, scheduler_ft = create_optimizer_scheduler(compressed_model, encoders, decoders, args)
         
     # distilled model for knowledge distillation
-    if args.distilled_model:
+    # ImageNet: the teacher is the pretrained distilled DeiT (as in the paper).
+    # CIFAR-10: the 1000-class distilled DeiT cannot teach a 10-class head, so the teacher is the dense
+    # CIFAR-10 DeiT-S that get_models() already loaded into `model` (97.29%).
+    if args.distilled_model and args.dataset == 'imagenet':
         del model
         torch.cuda.empty_cache()
         model = timm.create_model('deit_small_distilled_patch16_224', pretrained=True) if 'small' in args.model_name else timm.create_model('deit_base_distilled_patch16_224', pretrained=True)
         model.to(args.device)
         
+    model.eval()  # the teacher is never trained
+
     # Train the model
     best_acc = train(encoders, decoders, original_weights, model, compressed_model, train_loader, val_loader, 
                      optimizer, scheduler, optimizer_ft, scheduler_ft, selected_layers, args)
@@ -78,11 +87,18 @@ if __name__ == "__main__":
     parser.add_argument('--opt', type=str, default='adamw', help='Optimizer to use for finetuning other parameters')
     parser.add_argument('--weight_decay', type=float, default=0.05, help='weight decay (default: 0.05)')
     parser.add_argument('--momentum', type=float, default=0.9, metavar='M', help='SGD momentum (default: 0.9)')
-    parser.add_argument('--rank', type=int, default=276, help='Rank for encoded weight matrices')
+    parser.add_argument('--rank', type=int, default=276, help='Rank for encoded weight matrices (used for every layer type unless overridden below)')
+    parser.add_argument('--rank_qkv', type=int, default=None, help='Rank for the qkv layers (overrides --rank)')
+    parser.add_argument('--rank_proj', type=int, default=None, help='Rank for the proj layers (overrides --rank)')
+    parser.add_argument('--rank_fc1', type=int, default=None, help='Rank for the fc1 layers (overrides --rank)')
+    parser.add_argument('--rank_fc2', type=int, default=None, help='Rank for the fc2 layers (overrides --rank)')
+    parser.add_argument('--data_root', type=str, default='./data/cifar10', help='Where CIFAR-10 is stored / downloaded')
+    parser.add_argument('--num_workers', type=int, default=4, help='Data loader workers (CIFAR-10)')
+    parser.add_argument('--time_iters', type=int, default=0, help='If > 0: time this many training iterations, print the estimated epoch time and exit')
     parser.add_argument('--distilled_model', action='store_true', help='Use distilled model for distillation')
     parser.add_argument('--warmup', action='store_true', help='Use warmup scheduler')
     args = parser.parse_args()
     args.finetune_other_params = True
-    args.distilled_model = True
+    args.distilled_model = True  # on CIFAR-10 the dense CIFAR-10 model is used as teacher instead (see main())
     # args.warmup = True
     main(args)
